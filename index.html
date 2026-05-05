@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>יום הולדת שמח מיקה!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #aed581; 
+            overflow: hidden; 
+            touch-action: none; 
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- Scenery Styling --- */
+        .scenery-wrapper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -10; pointer-events: none;
+        }
+        .scenery-svg { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes drift {
+            0% { transform: translateX(-200px); opacity: 0; }
+            100% { transform: translateX(1400px); opacity: 0; }
+        }
+        .cloud { animation: drift 40s linear infinite; }
+
+        /* --- Typography --- */
+        .title-text {
+            color: #d97706;
+            text-shadow: 2px 2px 0px #fcd34d, 4px 4px 0px #fff;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- Dog Element --- */
+        .dog-wrapper {
+            position: absolute; 
+            width: 200px; 
+            height: 130px;
+            cursor: grab; 
+            user-select: none; 
+            touch-action: none;
+            will-change: left, top;
+        }
+        .dog-wrapper:active { cursor: grabbing; }
+        
+        .dog-content {
+            width: 100%; 
+            height: 100%; 
+            position: relative;
+            /* Perfectly centered transform to prevent teleportation when flipping */
+            transform-origin: 50% 50%;
+            transition: transform 0.2s ease-out; 
+        }
+
+        /* Animations for walking parts */
+        @keyframes walk-front { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
+        @keyframes walk-back { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-15deg); } }
+        .walking .leg-front { animation: walk-front 0.35s infinite linear; transform-origin: 50px 80px; }
+        .walking .leg-back { animation: walk-back 0.35s infinite linear; transform-origin: 120px 80px; }
+        .walking .dog-tail { animation: wag 0.3s infinite alternate; transform-origin: 140px 45px; }
+        @keyframes wag { 0% { transform: rotate(0deg); } 100% { transform: rotate(20deg); } }
+
+        /* Perfected Licking Tongue Animation */
+        .dog-tongue { 
+            opacity: 0; fill: #ff8a80; 
+            transition: opacity 0.1s; 
+        }
+        .licking .dog-tongue { 
+            opacity: 1; 
+            animation: tongue-lick 0.35s infinite alternate ease-in-out; 
+        }
+        @keyframes tongue-lick {
+            0% { transform: scaleX(0.1) rotate(0deg); }
+            100% { transform: scaleX(1.8) rotate(5deg) translateY(-1px); }
+        }
+
+        /* Flying Hearts */
+        .heart {
+            position: absolute; font-size: 28px; pointer-events: none;
+            animation: fly-heart 1s ease-out forwards; z-index: 100;
+        }
+        @keyframes fly-heart {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+            100% { transform: translateY(-80px) scale(1.5) rotate(15deg); opacity: 0; }
+        }
+
+        /* Kanga Spawner */
+        #kanga {
+            position: absolute; bottom: 20px; left: 30px; width: 180px;
+            cursor: pointer; z-index: 50; filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.2));
+            animation: bounce-kanga 4s infinite ease-in-out;
+            transition: transform 0.1s;
+        }
+        #kanga:active { transform: scale(0.9) translateY(10px); }
+        @keyframes bounce-kanga { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        .pop-in { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* Party Balloons */
+        .balloon {
+            position: absolute; width: 45px; height: 55px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            bottom: -100px; animation: float-up 12s infinite linear; z-index: -5; 
+        }
+        .balloon::before {
+            content: ''; position: absolute; bottom: -8px; left: 18.5px;
+            border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 8px solid inherit; filter: brightness(0.9);
+        }
+        .balloon::after {
+            content: ''; position: absolute; bottom: -30px; left: 21.5px; width: 2px; height: 30px; background: rgba(0,0,0,0.3);
+        }
+        @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; } }
+    </style>
+</head>
+<body class="relative flex flex-col items-center">
+
+    <!-- The Full Hundred Acre Wood Scenery -->
+    <div class="scenery-wrapper">
+        <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" class="scenery-svg">
+            <defs>
+                <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#E1F5FE" />
+                    <stop offset="100%" stop-color="#FFF9C4" />
+                </linearGradient>
+                <linearGradient id="hillBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#C5E1A5" />
+                    <stop offset="100%" stop-color="#9CCC65" />
+                </linearGradient>
+                <linearGradient id="hillFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#AED581" />
+                    <stop offset="100%" stop-color="#8BC34A" />
+                </linearGradient>
+            </defs>
+            <!-- Sky & Sun -->
+            <rect width="1200" height="500" fill="url(#skyGrad)" />
+            <circle cx="1050" cy="140" r="75" fill="#FFF59D" opacity="0.9" />
+
+            <!-- Clouds -->
+            <g fill="#FFFFFF">
+                <path class="cloud" style="animation-delay: -5s;" d="M 150,150 Q 180,110 220,130 Q 260,90 300,130 Q 340,130 320,170 L 140,170 Q 110,150 150,150" />
+                <path class="cloud" style="animation-delay: -20s; transform: scale(1.3) translate(300px, 50px);" d="M 150,150 Q 180,110 220,130 Q 260,90 300,130 Q 340,130 320,170 L 140,170 Q 110,150 150,150" opacity="0.8"/>
+                <path class="cloud" style="animation-delay: -10s; transform: scale(0.8) translate(700px, -50px);" d="M 150,150 Q 180,110 220,130 Q 260,90 300,130 Q 340,130 320,170 L 140,170 Q 110,150 150,150" />
+            </g>
+
+            <!-- Rolling Hills -->
+            <path d="M -100,400 Q 300,250 800,400 T 1400,350 L 1400,800 L -100,800 Z" fill="url(#hillBack)" />
+            <path d="M -100,480 Q 250,380 600,480 T 1400,430 L 1400,800 L -100,800 Z" fill="url(#hillFront)" />
+
+            <!-- Giant Pooh Tree Left -->
+            <g transform="translate(80, 100)">
+                <path d="M 90,500 C 120,300 80,100 80,50 C 60,150 50,350 40,500 Z" fill="#6D4C41" />
+                <!-- Tree House Hole -->
+                <ellipse cx="75" cy="380" rx="15" ry="25" fill="#3E2723" />
+                <circle cx="80" cy="50" r="110" fill="#81C784" />
+                <circle cx="0" cy="120" r="80" fill="#66BB6A" />
+                <circle cx="150" cy="100" r="90" fill="#4CAF50" />
+                <circle cx="80" cy="180" r="100" fill="#81C784" />
+            </g>
+
+            <!-- Pooh Tree Right -->
+            <g transform="translate(950, 150)">
+                <path d="M 60,400 C 80,250 70,50 70,20 C 50,150 40,300 30,400 Z" fill="#795548" />
+                <circle cx="50" cy="30" r="90" fill="#81C784" />
+                <circle cx="-20" cy="100" r="70" fill="#4CAF50" />
+                <circle cx="120" cy="90" r="80" fill="#66BB6A" />
+                <circle cx="50" cy="140" r="85" fill="#81C784" />
+            </g>
+
+            <!-- Signpost & Honey Pots scattered (No text on pots) -->
+            <g transform="translate(880, 420)">
+                <rect x="55" y="10" width="12" height="110" fill="#5D4037" rx="3" />
+                <polygon points="-10,25 120,15 130,35 120,50 -10,45" fill="#8D6E63" stroke="#4E342E" stroke-width="2"/>
+                <circle cx="10" cy="35" r="2.5" fill="#3E2723" />
+                <circle cx="110" cy="30" r="2.5" fill="#3E2723" />
+                <text x="60" y="38" font-family="'Rubik', sans-serif" font-weight="800" font-size="16" fill="#FFE0B2" text-anchor="middle" transform="rotate(-3 60 38)">יער ת"ק פרסאות</text>
+            </g>
+            
+            <g transform="translate(300, 500)">
+                <path d="M 5,25 C -5,60 45,60 35,25 Z" fill="#D2691E" />
+                <ellipse cx="20" cy="25" rx="17" ry="7" fill="#8B4513" />
+                <path d="M 5,25 Q 15,40 20,25 Q 25,30 35,25" fill="#FFD700" />
+            </g>
+            <g transform="translate(700, 470) scale(0.8)">
+                <path d="M 5,25 C -5,60 45,60 35,25 Z" fill="#D2691E" />
+                <ellipse cx="20" cy="25" rx="17" ry="7" fill="#8B4513" />
+                <path d="M 5,25 Q 15,40 20,25 Q 25,30 35,25" fill="#FFD700" />
+            </g>
+        </svg>
+    </div>
+
+    <div class="mt-12 text-center z-10 px-4 select-none pointer-events-none">
+        <h1 class="title-text text-5xl md:text-7xl font-extrabold mb-4">מזל טוב מיקה!</h1>
+        <div class="bg-amber-50/90 inline-block px-8 py-3 rounded-full shadow-lg backdrop-blur-md border border-white mb-2">
+            <p class="text-xl md:text-2xl text-amber-900 font-semibold">רו הכין לך מסיבת הפתעה! 🎈</p>
+        </div>
+        <p class="text-md md:text-lg text-amber-800 max-w-md mx-auto mt-2 bg-white/60 p-3 rounded-2xl shadow-sm">
+            תגררי את הכלבים באצבע.<br>כשכלבים נפגשים הם נותנים נשיקה! 🐾
+        </p>
+    </div>
+
+    <!-- The Spawner (Kanga) -->
+    <div id="kanga" onclick="spawnDog()" title="תלחצי עלי להוסיף חברים!">
+        <svg viewBox="0 0 200 200">
+            <g filter="drop-shadow(3px 5px 4px rgba(0,0,0,0.3))">
+                <path d="M 70,140 Q 20,180 10,190 Q 50,190 80,160 Z" fill="#C19A6B" />
+                <path d="M 80,130 Q 60,180 110,190 L 130,190 Q 110,170 100,130 Z" fill="#C19A6B" />
+                <path d="M 100,60 Q 140,110 110,170 Q 70,180 60,140 Q 50,90 90,60 Z" fill="#DEB887" />
+                <path d="M 70,120 Q 110,130 100,165 Q 75,160 65,130 Z" fill="#F5DEB3" />
+                <path d="M 65,135 Q 105,145 95,170 Q 70,165 65,135 Z" fill="#D2B48C" />
+                <g transform="translate(75, 115)">
+                    <path d="M 10,25 L 25,25 L 20,10 L 5,10 Z" fill="#8B4513" />
+                    <path d="M -2,15 Q 10,5 20,10 Q 25,20 15,25 Q 0,25 -2,15 Z" fill="#A0522D" />
+                    <circle cx="-2" cy="15" r="2" fill="#111" />
+                    <circle cx="10" cy="10" r="1.5" fill="#111" />
+                    <path d="M 15,8 Q 25,8 20,25 Q 12,25 15,8 Z" fill="#5C2E0B" />
+                </g>
+                <path d="M 100,100 Q 125,115 135,110 Q 140,105 125,100 Z" fill="#C19A6B" />
+                <path d="M 85,65 Q 95,30 115,35 Q 145,35 140,55 Q 125,65 100,70 Z" fill="#DEB887" />
+                <circle cx="140" cy="45" r="3.5" fill="#333" /> 
+                <circle cx="125" cy="42" r="3" fill="#333" /> 
+            </g>
+        </svg>
+    </div>
+
+    <script>
+        const dogColors = [
+            { main: '#8B4513', light: '#A0522D', dark: '#5C2E0B' }, // Brown
+            { main: '#2A2A2A', light: '#C87D3E', dark: '#111111' }, // Black & Tan
+            { main: '#E8D4A2', light: '#FFF3CD', dark: '#D4B872' }, // Cream
+            { main: '#5C3A21', light: '#C19A6B', dark: '#3E2723' }, // Chocolate
+            { main: '#9E9E9E', light: '#E0E0E0', dark: '#616161' }, // Silver Dapple
+            { main: '#D2691E', light: '#CD853F', dark: '#A0522D' }  // Red
+        ];
+
+        // All coordinates precisely aligned to the dog's inner SVG `<g transform="translate(20, 15)">`
+        const accessories = [
+            // 0: Party Hat
+            { back: '', front: `<g transform="translate(18, -10)"><polygon points="10,0 20,25 0,25" fill="#FF6B6B"/><circle cx="10" cy="0" r="4" fill="#fff"/></g>` },
+            
+            // 1: Sunglasses
+            { back: '', front: `<g transform="translate(18, 20)"><rect width="14" height="9" rx="2" fill="#111"/><rect x="18" width="14" height="9" rx="2" fill="#111"/><path d="M14,4 L18,4" stroke="#111" stroke-width="2"/></g>` },
+            
+            // 2: Superman (Cape split into back and front parts for correct layering)
+            { 
+                back: `<g transform="translate(10, 5)"><path d="M 40,40 Q 80,30 135,45 L 130,85 Q 85,80 40,55 Z" fill="#E23636" opacity="0.95"/></g>`, 
+                front: `
+                    <!-- Neck String and Chest Logo -->
+                    <path d="M 35,45 Q 45,55 52,43" fill="none" stroke="#E23636" stroke-width="2"/>
+                    <g transform="translate(45, 55)">
+                        <polygon points="0,0 12,0 6,10" fill="#FFD700" stroke="#E23636" stroke-width="1.5"/>
+                        <circle cx="6" cy="3" r="1.5" fill="#E23636"/>
+                    </g>`
+            },
+            
+            // 3: Pooh Shirt
+            { back: '', front: `<path d="M 35,35 Q 65,23 90,30 L 85,65 Q 60,73 35,60 Z" fill="#E23636"/><path d="M 40,60 L 45,75 L 55,75 L 52,60 Z" fill="#E23636"/>` },
+            
+            // 4: Batman (Cape split into back and front parts)
+            { 
+                back: `<path d="M 40,40 Q 80,30 135,45 L 130,85 Q 85,80 40,55 Z" fill="#222" opacity="0.95"/>`, 
+                front: `
+                    <!-- Neck String and Mask -->
+                    <path d="M 35,45 Q 45,55 52,43" fill="none" stroke="#222" stroke-width="2"/>
+                    <g transform="translate(13, 2)">
+                        <path d="M 5,25 C 5,5 35,5 35,25 Q 20,30 5,25 Z" fill="#222"/>
+                        <polygon points="8,10 10,-2 18,8" fill="#222"/>
+                        <polygon points="32,10 30,-2 22,8" fill="#222"/>
+                        <circle cx="14" cy="22" r="2.5" fill="#fff"/>
+                    </g>`
+            },
+            
+            // 5: Clown
+            { back: '', front: `<g transform="translate(25, 38)"><path d="M 0,5 Q 5,-10 10,5 Q 15,-10 20,5 Q 25,-10 30,5 Q 35,-10 40,5 Q 30,20 20,15 Q 10,20 0,5 Z" fill="#FFF" stroke="#FF6B6B" stroke-width="1.5"/></g><circle cx="-1" cy="35" r="4.5" fill="#FF0000"/><circle cx="-2" cy="33.5" r="1.5" fill="#FFF"/>` },
+            
+            // 6: Wizard
+            { back: '', front: `<g transform="translate(10, -25)"><ellipse cx="20" cy="40" rx="18" ry="4" fill="#4B0082" /><path d="M 5,40 Q 20,-10 35,40 Z" fill="#4B0082" /><polygon points="20,10 22,15 27,15 23,18 24,23 20,20 16,23 17,18 13,15 18,15" fill="#FFD700" /></g><g transform="translate(-10, 42)"><line x1="12" y1="0" x2="0" y2="15" stroke="#8B4513" stroke-width="2"/><polygon points="0,10 2,14 6,13 4,17 5,21 1,18 -3,21 -2,17 -6,13 -2,14" fill="#FFD700" /></g>` },
+            
+            // 7: Light Blue Harness (רתמת תכלת)
+            { back: '', front: `<path d="M 38,45 L 48,65" stroke="#29B6F6" stroke-width="3" fill="none"/><path d="M 75,30 L 70,68" stroke="#29B6F6" stroke-width="3" fill="none"/><path d="M 38,45 Q 55,35 75,30" stroke="#29B6F6" stroke-width="3" fill="none"/><circle cx="38" cy="45" r="2.5" fill="#0288D1"/><circle cx="75" cy="30" r="2.5" fill="#0288D1"/>` },
+            
+            // 8: Natural (No accessories)
+            { back: '', front: '' }
+        ];
+
+        let dogs = [];
+        let dogCount = 0;
+        const zIndexBase = 100;
+
+        function getDogSVG(color, acc) {
+            return `
+            <!-- The Entire Dog resides in ONE single perfectly centered SVG. -->
+            <svg viewBox="0 0 200 130" class="w-full h-full drop-shadow-md">
+                <!-- SHADOW -->
+                <ellipse cx="100" cy="115" rx="45" ry="6" fill="rgba(0,0,0,0.15)" />
+                
+                <g transform="translate(20, 15)">
+                    <!-- LAYER 1: BACK ACCESSORIES (Capes - drawn behind the body) -->
+                    ${acc.back}
+
+                    <!-- LAYER 2: BACK LEGS & TAIL -->
+                    <g class="dog-tail"><path d="M 125,40 Q 150,25 155,15 Q 145,25 135,45 Z" fill="${color.main}" /></g>
+                    <g class="leg-back"><path d="M 105,55 L 110,90 Q 115,92 120,90 L 120,55 Z" fill="${color.dark}" /></g>
+                    <g class="leg-front"><path d="M 35,55 L 40,90 Q 45,92 50,90 L 50,55 Z" fill="${color.dark}" /></g>
+                    
+                    <!-- LAYER 3: BODY -->
+                    <path d="M 35,35 Q 80,25 125,35 Q 145,40 135,60 Q 80,75 35,60 Q 20,50 35,35 Z" fill="${color.main}" />
+                    <path d="M 40,55 Q 80,70 125,55 Q 130,60 80,65 Q 40,60 40,55 Z" fill="${color.dark}" /> 
+
+                    <!-- LAYER 4: FRONT LEGS -->
+                    <g class="leg-back"><path d="M 115,60 L 120,95 Q 125,97 130,95 L 130,60 Z" fill="${color.light}" /></g>
+                    <g class="leg-front"><path d="M 45,60 L 50,95 Q 55,97 60,95 L 60,60 Z" fill="${color.light}" /></g>
+
+                    <!-- LAYER 5: HEAD -->
+                    <g transform="translate(-5, 0)">
+                        <path d="M 35,45 L 50,45 L 45,20 L 30,25 Z" fill="${color.main}" />
+                        <path d="M 20,25 Q 35,5 55,15 Q 65,30 45,45 Q 25,40 20,25 Z" fill="${color.light}" />
+                        <path d="M 45,25 Q 15,25 5,35 Q 0,45 15,45 Q 30,45 45,35 Z" fill="${color.light}" />
+                        <path d="M 45,20 C 65,15 65,65 50,70 C 35,75 35,30 45,20 Z" fill="${color.dark}" />
+                        
+                        <circle cx="4" cy="35" r="4.5" fill="#111" /> <!-- Nose -->
+                        <circle cx="27" cy="24" r="3.5" fill="#111" /> <!-- Eye -->
+                        
+                        <!-- TONGUE: Origin is perfectly at the mouth line -->
+                        <g class="dog-tongue" style="transform-origin: 12px 42px;">
+                            <path d="M 12,42 Q -5,42 -5,46 Q 0,50 12,46 Z" />
+                        </g>
+                    </g>
+
+                    <!-- LAYER 6: FRONT ACCESSORIES (Hats, Shirts, Cape Collars) -->
+                    ${acc.front}
+                </g>
+            </svg>`;
+        }
+
+        function spawnDog() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'dog-wrapper pop-in';
+            wrapper.id = 'dog-' + dogCount++;
+            
+            const startX = 150 + Math.random() * 50; 
+            const startY = window.innerHeight - 200 - Math.random() * 50;
+            wrapper.style.left = startX + 'px';
+            wrapper.style.top = startY + 'px';
+
+            const content = document.createElement('div');
+            content.className = 'dog-content'; 
+            
+            const color = dogColors[Math.floor(Math.random() * dogColors.length)];
+            const acc = accessories[Math.floor(Math.random() * accessories.length)];
+            content.innerHTML = getDogSVG(color, acc);
+            
+            wrapper.appendChild(content);
+            document.body.appendChild(wrapper);
+            
+            const dogObj = { 
+                el: wrapper, content: content, 
+                x: startX, y: startY, 
+                targetX: startX, targetY: startY,
+                vx: 0, vy: 0,
+                state: 'idle', 
+                direction: 1, lastLick: 0 
+            };
+            dogs.push(dogObj);
+            
+            makeDraggable(dogObj);
+            setTimeout(() => {
+                wrapper.classList.remove('pop-in');
+                pickNewTarget(dogObj);
+            }, 600);
+        }
+
+        function pickNewTarget(dog) {
+            if (dog.state === 'dragging' || dog.state === 'licking') return;
+            
+            const padding = 80;
+            dog.targetX = padding + Math.random() * (window.innerWidth - 2 * padding - 200);
+            const minY = window.innerHeight * 0.45;
+            const maxY = window.innerHeight - 150;
+            dog.targetY = minY + Math.random() * (maxY - minY);
+            
+            const dx = dog.targetX - dog.x;
+            const dy = dog.targetY - dog.y;
+            const dist = Math.hypot(dx, dy);
+            
+            if (dist > 10) {
+                const speed = 1.2; 
+                dog.vx = (dx / dist) * speed;
+                dog.vy = (dy / dist) * speed;
+                dog.direction = dx > 0 ? -1 : 1; 
+                dog.content.style.transform = `scaleX(${dog.direction})`;
+                
+                dog.state = 'wandering';
+                dog.content.classList.add('walking');
+            } else {
+                setTimeout(() => pickNewTarget(dog), 1000);
+            }
+        }
+
+        function triggerLick(dogA, dogB) {
+            dogA.state = 'licking';
+            dogB.state = 'licking';
+            dogA.lastLick = dogB.lastLick = Date.now();
+            
+            dogA.content.classList.remove('walking');
+            dogB.content.classList.remove('walking');
+            dogA.content.classList.add('licking');
+            dogB.content.classList.add('licking');
+            
+            dogA.direction = dogA.x < dogB.x ? -1 : 1;
+            dogB.direction = dogB.x < dogA.x ? -1 : 1;
+            dogA.content.style.transform = `scaleX(${dogA.direction})`;
+            dogB.content.style.transform = `scaleX(${dogB.direction})`;
+            
+            const centerX = (dogA.x + dogB.x) / 2 + 100;
+            const centerY = Math.min(dogA.y, dogB.y) - 20;
+
+            for(let i=0; i<3; i++) {
+                setTimeout(() => {
+                    const h = document.createElement('div');
+                    h.className = 'heart'; h.innerHTML = '❤️';
+                    h.style.left = (centerX + (Math.random()*40-20)) + 'px';
+                    h.style.top = centerY + 'px';
+                    document.body.appendChild(h);
+                    setTimeout(() => h.remove(), 1200);
+                }, i * 300);
+            }
+
+            setTimeout(() => {
+                dogA.content.classList.remove('licking');
+                dogB.content.classList.remove('licking');
+                dogA.state = 'idle';
+                dogB.state = 'idle';
+                setTimeout(() => pickNewTarget(dogA), 500);
+                setTimeout(() => pickNewTarget(dogB), 500);
+            }, 2000);
+        }
+
+        // Custom Animation Loop instead of CSS transitions for solid 0-glitch movement
+        function gameLoop() {
+            const now = Date.now();
+            
+            for (let i = 0; i < dogs.length; i++) {
+                let d1 = dogs[i];
+                
+                if (d1.state === 'wandering') {
+                    const distToTarget = Math.hypot(d1.targetX - d1.x, d1.targetY - d1.y);
+                    if (distToTarget < 2) {
+                        d1.state = 'idle';
+                        d1.content.classList.remove('walking');
+                        setTimeout(() => pickNewTarget(d1), 1000 + Math.random() * 2000);
+                    } else {
+                        d1.x += d1.vx;
+                        d1.y += d1.vy;
+                        d1.el.style.left = d1.x + 'px';
+                        d1.el.style.top = d1.y + 'px';
+                    }
+                }
+                
+                if (d1.state !== 'licking' && d1.state !== 'dragging' && (now - d1.lastLick > 3000)) {
+                    for (let j = i + 1; j < dogs.length; j++) {
+                        let d2 = dogs[j];
+                        if (d2.state !== 'licking' && d2.state !== 'dragging' && (now - d2.lastLick > 3000)) {
+                            const dist = Math.hypot(d1.x - d2.x, d1.y - d2.y);
+                            if (dist < 110) {
+                                triggerLick(d1, d2);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        requestAnimationFrame(gameLoop);
+
+        function makeDraggable(dog) {
+            let shiftX = 0, shiftY = 0;
+            dog.el.addEventListener('pointerdown', e => {
+                if (e.target.tagName.toLowerCase() === 'a') return;
+                
+                dog.el.setPointerCapture(e.pointerId);
+                dog.state = 'dragging';
+                dog.content.classList.remove('walking');
+                dog.content.classList.remove('licking');
+                dog.el.style.zIndex = zIndexBase + (++dogCount);
+                
+                const rect = dog.el.getBoundingClientRect();
+                shiftX = e.clientX - rect.left;
+                shiftY = e.clientY - rect.top;
+
+                const onMove = ev => {
+                    if (dog.state !== 'dragging') return;
+                    let nx = ev.clientX - shiftX;
+                    let ny = ev.clientY - shiftY;
+                    
+                    nx = Math.max(-50, Math.min(nx, window.innerWidth - 150));
+                    ny = Math.max(0, Math.min(ny, window.innerHeight - 100));
+
+                    if (nx > dog.x + 2) dog.direction = -1;
+                    else if (nx < dog.x - 2) dog.direction = 1;
+                    dog.content.style.transform = `scaleX(${dog.direction})`;
+                    
+                    dog.x = nx;
+                    dog.y = ny;
+                    dog.el.style.left = dog.x + "px";
+                    dog.el.style.top = dog.y + "px";
+                };
+
+                const onUp = () => {
+                    dog.state = 'idle';
+                    dog.el.removeEventListener('pointermove', onMove);
+                    dog.el.removeEventListener('pointerup', onUp);
+                    setTimeout(() => { if(dog.state === 'idle') pickNewTarget(dog); }, 500);
+                };
+                
+                dog.el.addEventListener('pointermove', onMove);
+                dog.el.addEventListener('pointerup', onUp);
+            });
+        }
+
+        setInterval(() => {
+            const b = document.createElement('div');
+            b.className = 'balloon';
+            b.style.left = Math.random() * 90 + '%';
+            b.style.backgroundColor = `hsla(${Math.random() * 360}, 70%, 60%, 0.8)`;
+            document.body.appendChild(b);
+            setTimeout(() => b.remove(), 15000);
+        }, 4000);
+
+        spawnDog(); spawnDog();
+    </script>
+</body>
+</html>
